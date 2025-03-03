@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -16,6 +15,7 @@ const InvoiceForm: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addInvoice } = useInvoices();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().slice(0, 10),
@@ -207,8 +207,9 @@ const InvoiceForm: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     if (!validateForm()) {
       toast({
@@ -216,43 +217,55 @@ const InvoiceForm: React.FC = () => {
         title: "Validation Error",
         description: "Please check the form for errors and try again.",
       });
+      setIsSubmitting(false);
       return;
     }
 
-    // Calculate totals
-    const totalItems = formData.items.reduce(
-      (sum, item) => sum + item.quantity,
-      0
-    );
-    const totalWeight = formData.items.reduce(
-      (sum, item) => sum + item.weight,
-      0
-    );
+    try {
+      // Calculate totals
+      const totalItems = formData.items.reduce(
+        (sum, item) => sum + item.quantity,
+        0
+      );
+      const totalWeight = formData.items.reduce(
+        (sum, item) => sum + item.weight,
+        0
+      );
 
-    // Create invoice with calculated fields
-    const invoice = {
-      ...formData,
-      status: "pending" as const,
-      paymentStatus: "due" as const,
-      totalItems,
-      weight: totalWeight,
-      grossWeight: totalWeight * 1.1, // Just an example calculation
-      dimensions: formData.items
-        .map((item) => item.dimensions)
-        .filter(Boolean)
-        .join(", "),
-    };
+      // Create invoice with calculated fields
+      const invoice = {
+        ...formData,
+        status: "pending" as const,
+        paymentStatus: "due" as const,
+        totalItems,
+        weight: totalWeight,
+        grossWeight: totalWeight * 1.1, // Just an example calculation
+        dimensions: formData.items
+          .map((item) => item.dimensions)
+          .filter(Boolean)
+          .join(", "),
+      };
 
-    // Add the invoice
-    const newInvoice = addInvoice(invoice);
-    
-    toast({
-      title: "Invoice Created",
-      description: `Invoice with consignment number ${newInvoice.consignmentNumber} has been created successfully.`,
-    });
+      // Add the invoice and wait for the promise to resolve
+      const newInvoice = await addInvoice(invoice);
+      
+      toast({
+        title: "Invoice Created",
+        description: `Invoice with consignment number ${newInvoice.consignmentNumber} has been created successfully.`,
+      });
 
-    // Navigate to the invoice details page
-    navigate(`/invoices/${newInvoice.id}`);
+      // Navigate to the invoice details page
+      navigate(`/invoices/${newInvoice.id}`);
+    } catch (error) {
+      console.error("Error creating invoice:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create invoice. Please try again later.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -692,9 +705,19 @@ const InvoiceForm: React.FC = () => {
           <Button 
             type="submit"
             className="px-6"
+            disabled={isSubmitting}
           >
-            <Save className="mr-2 h-4 w-4" />
-            Create Invoice
+            {isSubmitting ? (
+              <>
+                <span className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent border-white rounded-full"></span>
+                Processing...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Create Invoice
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>
