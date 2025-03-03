@@ -1,7 +1,7 @@
 
 import React from "react";
 import Header from "@/components/Header";
-import ConsignmentTracker from "@/components/ConsignmentTracker";
+import { ConsignmentTracker } from "@/components/tracking";
 
 const Track: React.FC = () => {
   return (
