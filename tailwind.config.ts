@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -26,7 +25,7 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
+					DEFAULT: '#025200',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
@@ -70,6 +69,11 @@ export default {
 					cancelled: '#EF4444',
 					due: '#F59E0B',
 					paid: '#10B981'
+				},
+				mateng: {
+					DEFAULT: '#025200',
+					light: '#F2FCE2',
+					dark: '#013C00'
 				}
 			},
 			borderRadius: {

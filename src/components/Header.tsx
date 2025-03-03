@@ -47,8 +47,8 @@ const Header: React.FC = () => {
             to="/"
             className="flex items-center text-lg font-semibold transition-all hover:opacity-80"
           >
-            <Package className="h-6 w-6 mr-2 text-primary" />
-            <span className="text-primary">TrackShip</span>
+            <Package className="h-6 w-6 mr-2 text-mateng" />
+            <span className="text-mateng font-bold">Mateng</span>
           </Link>
         </div>
 
@@ -59,9 +59,9 @@ const Header: React.FC = () => {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex items-center text-sm font-medium transition-colors hover:text-primary",
+                "flex items-center text-sm font-medium transition-colors hover:text-mateng",
                 location.pathname === item.path
-                  ? "text-primary"
+                  ? "text-mateng"
                   : "text-muted-foreground"
               )}
             >
@@ -95,9 +95,9 @@ const Header: React.FC = () => {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    "flex items-center py-2 text-sm font-medium transition-colors hover:text-primary",
+                    "flex items-center py-2 text-sm font-medium transition-colors hover:text-mateng",
                     location.pathname === item.path
-                      ? "text-primary"
+                      ? "text-mateng"
                       : "text-muted-foreground"
                   )}
                   onClick={() => setMobileMenuOpen(false)}
