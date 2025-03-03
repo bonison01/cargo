@@ -52,7 +52,7 @@ export interface Invoice {
 
 interface InvoiceContextType {
   invoices: Invoice[];
-  addInvoice: (invoice: Omit<Invoice, "id" | "consignmentNumber">) => void;
+  addInvoice: (invoice: Omit<Invoice, "id" | "consignmentNumber">) => Invoice;
   getInvoice: (id: string) => Invoice | undefined;
   searchInvoices: (query: string) => Invoice[];
   updateInvoiceStatus: (id: string, status: InvoiceStatus) => void;
