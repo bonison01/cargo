@@ -1,5 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 
 export type InvoiceStatus = 'pending' | 'shipped' | 'delivered' | 'cancelled';
 export type PaymentStatus = 'due' | 'paid';
@@ -52,11 +55,12 @@ export interface Invoice {
 
 interface InvoiceContextType {
   invoices: Invoice[];
-  addInvoice: (invoice: Omit<Invoice, "id" | "consignmentNumber">) => Invoice;
+  loading: boolean;
+  addInvoice: (invoice: Omit<Invoice, "id" | "consignmentNumber">) => Promise<Invoice>;
   getInvoice: (id: string) => Invoice | undefined;
   searchInvoices: (query: string) => Invoice[];
-  updateInvoiceStatus: (id: string, status: InvoiceStatus) => void;
-  updatePaymentStatus: (id: string, status: PaymentStatus) => void;
+  updateInvoiceStatus: (id: string, status: InvoiceStatus) => Promise<void>;
+  updatePaymentStatus: (id: string, status: PaymentStatus) => Promise<void>;
 }
 
 const InvoiceContext = createContext<InvoiceContextType | undefined>(undefined);
@@ -70,14 +74,108 @@ export const useInvoices = () => {
 };
 
 export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [invoices, setInvoices] = useState<Invoice[]>(() => {
-    const savedInvoices = localStorage.getItem("invoices");
-    return savedInvoices ? JSON.parse(savedInvoices) : [];
-  });
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const { user } = useAuth();
 
+  // Fetch invoices whenever the user changes
   useEffect(() => {
-    localStorage.setItem("invoices", JSON.stringify(invoices));
-  }, [invoices]);
+    if (user) {
+      fetchInvoices();
+    } else {
+      // When not logged in, use local storage for demo purposes
+      const savedInvoices = localStorage.getItem("invoices");
+      setInvoices(savedInvoices ? JSON.parse(savedInvoices) : []);
+      setLoading(false);
+    }
+  }, [user]);
+
+  const fetchInvoices = async () => {
+    setLoading(true);
+    try {
+      const { data: invoicesData, error } = await supabase
+        .from("invoices")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      // Get all invoice items
+      const { data: itemsData, error: itemsError } = await supabase
+        .from("invoice_items")
+        .select("*");
+
+      if (itemsError) {
+        throw itemsError;
+      }
+
+      // Transform database data to our Invoice format
+      const transformedInvoices: Invoice[] = invoicesData.map((dbInvoice) => {
+        // Find items for this invoice
+        const invoiceItems = itemsData
+          ? itemsData.filter((item) => item.invoice_id === dbInvoice.id)
+          : [];
+
+        return {
+          id: dbInvoice.id,
+          date: dbInvoice.date,
+          consignmentNumber: dbInvoice.consignment_number,
+          waybillNumber: dbInvoice.waybill_number,
+          originCity: dbInvoice.origin_city,
+          destinationCity: dbInvoice.destination_city,
+          sender: {
+            name: dbInvoice.sender_name,
+            address: dbInvoice.sender_address,
+            phone: dbInvoice.sender_phone,
+          },
+          receiver: {
+            name: dbInvoice.receiver_name,
+            address: dbInvoice.receiver_address,
+            phone: dbInvoice.receiver_phone,
+          },
+          items: invoiceItems.map((item) => ({
+            id: item.id,
+            description: item.description,
+            quantity: item.quantity,
+            weight: item.weight,
+            dimensions: item.dimensions,
+          })),
+          totalItems: dbInvoice.total_items,
+          weight: dbInvoice.weight,
+          grossWeight: dbInvoice.gross_weight,
+          contents: dbInvoice.contents,
+          dimensions: dbInvoice.dimensions,
+          charges: {
+            basicFreight: dbInvoice.basic_freight,
+            cod: dbInvoice.cod,
+            freightHandling: dbInvoice.freight_handling,
+            pickupDelivery: dbInvoice.pickup_delivery,
+            packaging: dbInvoice.packaging,
+            cwbCharge: dbInvoice.cwb_charge,
+            otherCharges: dbInvoice.other_charges,
+            cgst: dbInvoice.cgst,
+            total: dbInvoice.total,
+          },
+          status: dbInvoice.status as InvoiceStatus,
+          paymentStatus: dbInvoice.payment_status as PaymentStatus,
+        };
+      });
+
+      setInvoices(transformedInvoices);
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load invoices. Please try again later.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const generateConsignmentNumber = () => {
     const dateString = new Date().toISOString().substring(0, 10).replace(/-/g, "");
@@ -87,14 +185,98 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return `MATC${dateString}${randomDigits}`;
   };
 
-  const addInvoice = (invoiceData: Omit<Invoice, "id" | "consignmentNumber">) => {
-    const newInvoice: Invoice = {
-      ...invoiceData,
-      id: Math.random().toString(36).substring(2, 9),
-      consignmentNumber: generateConsignmentNumber(),
-    };
-    setInvoices((prev) => [...prev, newInvoice]);
-    return newInvoice;
+  const addInvoice = async (invoiceData: Omit<Invoice, "id" | "consignmentNumber">) => {
+    if (!user) {
+      // Fallback to local storage when not logged in
+      const newInvoice: Invoice = {
+        ...invoiceData,
+        id: Math.random().toString(36).substring(2, 9),
+        consignmentNumber: generateConsignmentNumber(),
+      };
+      setInvoices((prev) => [...prev, newInvoice]);
+      localStorage.setItem("invoices", JSON.stringify([...invoices, newInvoice]));
+      return newInvoice;
+    }
+
+    try {
+      // Generate the consignment number
+      const consignmentNumber = generateConsignmentNumber();
+
+      // Insert the invoice to the database
+      const { data: invoiceResult, error: invoiceError } = await supabase
+        .from("invoices")
+        .insert({
+          user_id: user.id,
+          date: invoiceData.date,
+          consignment_number: consignmentNumber,
+          waybill_number: invoiceData.waybillNumber,
+          origin_city: invoiceData.originCity,
+          destination_city: invoiceData.destinationCity,
+          sender_name: invoiceData.sender.name,
+          sender_address: invoiceData.sender.address,
+          sender_phone: invoiceData.sender.phone,
+          receiver_name: invoiceData.receiver.name,
+          receiver_address: invoiceData.receiver.address,
+          receiver_phone: invoiceData.receiver.phone,
+          total_items: invoiceData.totalItems,
+          weight: invoiceData.weight,
+          gross_weight: invoiceData.grossWeight,
+          contents: invoiceData.contents,
+          dimensions: invoiceData.dimensions,
+          basic_freight: invoiceData.charges.basicFreight,
+          cod: invoiceData.charges.cod,
+          freight_handling: invoiceData.charges.freightHandling,
+          pickup_delivery: invoiceData.charges.pickupDelivery,
+          packaging: invoiceData.charges.packaging,
+          cwb_charge: invoiceData.charges.cwbCharge,
+          other_charges: invoiceData.charges.otherCharges,
+          cgst: invoiceData.charges.cgst,
+          total: invoiceData.charges.total,
+          status: invoiceData.status,
+          payment_status: invoiceData.paymentStatus,
+        })
+        .select("id")
+        .single();
+
+      if (invoiceError) throw invoiceError;
+
+      // Insert all invoice items
+      const invoiceItems = invoiceData.items.map((item) => ({
+        invoice_id: invoiceResult.id,
+        description: item.description,
+        quantity: item.quantity,
+        weight: item.weight,
+        dimensions: item.dimensions || "",
+      }));
+
+      if (invoiceItems.length > 0) {
+        const { error: itemsError } = await supabase
+          .from("invoice_items")
+          .insert(invoiceItems);
+
+        if (itemsError) throw itemsError;
+      }
+
+      // Fetch the updated invoice list
+      await fetchInvoices();
+
+      // Return the new invoice
+      const newInvoice: Invoice = {
+        ...invoiceData,
+        id: invoiceResult.id,
+        consignmentNumber,
+      };
+
+      return newInvoice;
+    } catch (error) {
+      console.error("Error adding invoice:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create invoice. Please try again.",
+      });
+      throw error;
+    }
   };
 
   const getInvoice = (id: string) => {
@@ -116,26 +298,99 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
   };
 
-  const updateInvoiceStatus = (id: string, status: InvoiceStatus) => {
-    setInvoices((prev) =>
-      prev.map((invoice) =>
-        invoice.id === id ? { ...invoice, status } : invoice
-      )
-    );
+  const updateInvoiceStatus = async (id: string, status: InvoiceStatus) => {
+    if (!user) {
+      // Fallback to local storage when not logged in
+      setInvoices((prev) =>
+        prev.map((invoice) =>
+          invoice.id === id ? { ...invoice, status } : invoice
+        )
+      );
+      localStorage.setItem(
+        "invoices",
+        JSON.stringify(
+          invoices.map((invoice) =>
+            invoice.id === id ? { ...invoice, status } : invoice
+          )
+        )
+      );
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("invoices")
+        .update({ status })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      // Update local state
+      setInvoices((prev) =>
+        prev.map((invoice) =>
+          invoice.id === id ? { ...invoice, status } : invoice
+        )
+      );
+    } catch (error) {
+      console.error("Error updating invoice status:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update invoice status. Please try again.",
+      });
+      throw error;
+    }
   };
 
-  const updatePaymentStatus = (id: string, status: PaymentStatus) => {
-    setInvoices((prev) =>
-      prev.map((invoice) =>
-        invoice.id === id ? { ...invoice, paymentStatus: status } : invoice
-      )
-    );
+  const updatePaymentStatus = async (id: string, status: PaymentStatus) => {
+    if (!user) {
+      // Fallback to local storage when not logged in
+      setInvoices((prev) =>
+        prev.map((invoice) =>
+          invoice.id === id ? { ...invoice, paymentStatus: status } : invoice
+        )
+      );
+      localStorage.setItem(
+        "invoices",
+        JSON.stringify(
+          invoices.map((invoice) =>
+            invoice.id === id ? { ...invoice, paymentStatus: status } : invoice
+          )
+        )
+      );
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("invoices")
+        .update({ payment_status: status })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      // Update local state
+      setInvoices((prev) =>
+        prev.map((invoice) =>
+          invoice.id === id ? { ...invoice, paymentStatus: status } : invoice
+        )
+      );
+    } catch (error) {
+      console.error("Error updating payment status:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update payment status. Please try again.",
+      });
+      throw error;
+    }
   };
 
   return (
     <InvoiceContext.Provider
       value={{
         invoices,
+        loading,
         addInvoice,
         getInvoice,
         searchInvoices,

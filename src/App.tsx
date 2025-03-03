@@ -6,24 +6,51 @@ import CreateInvoice from "./pages/CreateInvoice";
 import ViewInvoices from "./pages/ViewInvoices";
 import InvoiceDetails from "./pages/InvoiceDetails";
 import Track from "./pages/Track";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { AuthProvider } from "./context/AuthContext";
 import { InvoiceProvider } from "./context/InvoiceContext";
 import { Toaster } from "./components/ui/toaster";
 
 function App() {
   return (
     <Router>
-      <InvoiceProvider>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/create-invoice" element={<CreateInvoice />} />
-          <Route path="/invoices" element={<ViewInvoices />} />
-          <Route path="/invoices/:id" element={<InvoiceDetails />} />
-          <Route path="/track" element={<Track />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Toaster />
-      </InvoiceProvider>
+      <AuthProvider>
+        <InvoiceProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route
+              path="/create-invoice"
+              element={
+                <ProtectedRoute>
+                  <CreateInvoice />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invoices"
+              element={
+                <ProtectedRoute>
+                  <ViewInvoices />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invoices/:id"
+              element={
+                <ProtectedRoute>
+                  <InvoiceDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/track" element={<Track />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Toaster />
+        </InvoiceProvider>
+      </AuthProvider>
     </Router>
   );
 }

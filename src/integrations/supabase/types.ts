@@ -9,7 +9,173 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      invoice_items: {
+        Row: {
+          created_at: string | null
+          description: string
+          dimensions: string
+          id: number
+          invoice_id: string
+          quantity: number
+          updated_at: string | null
+          weight: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          dimensions: string
+          id?: number
+          invoice_id: string
+          quantity: number
+          updated_at?: string | null
+          weight: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          dimensions?: string
+          id?: number
+          invoice_id?: string
+          quantity?: number
+          updated_at?: string | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          basic_freight: number
+          cgst: number
+          cod: number
+          consignment_number: string
+          contents: string
+          created_at: string | null
+          cwb_charge: number
+          date: string
+          destination_city: string
+          dimensions: string
+          freight_handling: number
+          gross_weight: number
+          id: string
+          origin_city: string
+          other_charges: number
+          packaging: number
+          payment_status: string
+          pickup_delivery: number
+          receiver_address: string
+          receiver_name: string
+          receiver_phone: string
+          sender_address: string
+          sender_name: string
+          sender_phone: string
+          status: string
+          total: number
+          total_items: number
+          updated_at: string | null
+          user_id: string
+          waybill_number: string
+          weight: number
+        }
+        Insert: {
+          basic_freight: number
+          cgst: number
+          cod: number
+          consignment_number: string
+          contents: string
+          created_at?: string | null
+          cwb_charge: number
+          date: string
+          destination_city: string
+          dimensions: string
+          freight_handling: number
+          gross_weight: number
+          id?: string
+          origin_city: string
+          other_charges: number
+          packaging: number
+          payment_status: string
+          pickup_delivery: number
+          receiver_address: string
+          receiver_name: string
+          receiver_phone: string
+          sender_address: string
+          sender_name: string
+          sender_phone: string
+          status: string
+          total: number
+          total_items: number
+          updated_at?: string | null
+          user_id: string
+          waybill_number: string
+          weight: number
+        }
+        Update: {
+          basic_freight?: number
+          cgst?: number
+          cod?: number
+          consignment_number?: string
+          contents?: string
+          created_at?: string | null
+          cwb_charge?: number
+          date?: string
+          destination_city?: string
+          dimensions?: string
+          freight_handling?: number
+          gross_weight?: number
+          id?: string
+          origin_city?: string
+          other_charges?: number
+          packaging?: number
+          payment_status?: string
+          pickup_delivery?: number
+          receiver_address?: string
+          receiver_name?: string
+          receiver_phone?: string
+          sender_address?: string
+          sender_name?: string
+          sender_phone?: string
+          status?: string
+          total?: number
+          total_items?: number
+          updated_at?: string | null
+          user_id?: string
+          waybill_number?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
