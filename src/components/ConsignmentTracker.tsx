@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import StatusBadge from "@/components/ui/StatusBadge";
+import Captcha from "@/components/ui/Captcha";
 import {
   Truck,
   Search,
@@ -26,9 +27,17 @@ const ConsignmentTracker: React.FC = () => {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackedInvoice, setTrackedInvoice] = useState<any>(null);
   const [notFound, setNotFound] = useState(false);
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
+  const [searchAttempted, setSearchAttempted] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setSearchAttempted(true);
+    
+    if (!isCaptchaVerified) {
+      return;
+    }
+    
     setNotFound(false);
 
     // Remove spaces and make uppercase
@@ -75,6 +84,10 @@ const ConsignmentTracker: React.FC = () => {
     return steps;
   };
 
+  const handleCaptchaVerify = (isVerified: boolean) => {
+    setIsCaptchaVerified(isVerified);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <Card className="glass">
@@ -96,20 +109,36 @@ const ConsignmentTracker: React.FC = () => {
                   className="pl-10"
                 />
               </div>
-              <Button type="submit">Track</Button>
+              <Button type="submit" disabled={!trackingNumber.trim()}>Track</Button>
             </div>
             
-            {notFound && (
-              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <XCircle className="h-5 w-5 text-destructive" />
-                  <p className="font-medium">No shipment found with that consignment number</p>
-                </div>
-                <p className="ml-7 text-muted-foreground">
-                  Please check the consignment number and try again.
-                </p>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div>
+                <Captcha onVerify={handleCaptchaVerify} />
               </div>
-            )}
+              <div className="space-y-2">
+                {searchAttempted && !isCaptchaVerified && (
+                  <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Info className="h-5 w-5 text-amber-500" />
+                      <p className="font-medium">Please verify the captcha first</p>
+                    </div>
+                  </div>
+                )}
+                
+                {notFound && (
+                  <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <XCircle className="h-5 w-5 text-destructive" />
+                      <p className="font-medium">No shipment found with that consignment number</p>
+                    </div>
+                    <p className="ml-7 text-muted-foreground">
+                      Please check the consignment number and try again.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </form>
 
           {trackedInvoice && (

@@ -80,3 +80,11 @@ export const formatConsignmentNumber = (num: string) => {
   // Add a space after MATC and then every 4 characters
   return num.replace(/^(MATC)(\d{4})(\d{4})(\d{4})$/, '$1 $2 $3 $4');
 };
+
+// Generate a unique waybill number
+export const generateWaybillNumber = () => {
+  const prefix = "WB";
+  const datePrefix = new Date().toISOString().substring(0, 10).replace(/-/g, "");
+  const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+  return `${prefix}${datePrefix}${randomSuffix}`;
+};

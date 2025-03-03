@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useInvoices } from "@/context/InvoiceContext";
-import { calculateCGST, calculateTotal, isValidPhone } from "@/utils/helpers";
+import { calculateCGST, calculateTotal, isValidPhone, generateWaybillNumber } from "@/utils/helpers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { PlusCircle, MinusCircle, Package, ArrowRight, Save } from "lucide-react";
+import { PlusCircle, MinusCircle, Package, ArrowRight, Save, RefreshCw } from "lucide-react";
 
 const InvoiceForm: React.FC = () => {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ const InvoiceForm: React.FC = () => {
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().slice(0, 10),
-    waybillNumber: "",
+    waybillNumber: generateWaybillNumber(),
     originCity: "",
     destinationCity: "",
     sender: {
@@ -155,6 +155,13 @@ const InvoiceForm: React.FC = () => {
     setFormData((prev) => ({
       ...prev,
       items: prev.items.filter((item) => item.id !== id),
+    }));
+  };
+
+  const regenerateWaybillNumber = () => {
+    setFormData(prev => ({
+      ...prev,
+      waybillNumber: generateWaybillNumber()
     }));
   };
 
@@ -295,13 +302,27 @@ const InvoiceForm: React.FC = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="waybillNumber">Consignment Way Bill No</Label>
-              <Input
-                id="waybillNumber"
-                name="waybillNumber"
-                value={formData.waybillNumber}
-                onChange={handleInputChange}
-                className={`w-full ${errors["waybillNumber"] ? "border-red-500" : ""}`}
-              />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    id="waybillNumber"
+                    name="waybillNumber"
+                    value={formData.waybillNumber}
+                    onChange={handleInputChange}
+                    className={`w-full ${errors["waybillNumber"] ? "border-red-500" : ""}`}
+                    readOnly
+                  />
+                </div>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="icon"
+                  onClick={regenerateWaybillNumber}
+                  title="Generate new waybill number"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
               {errors["waybillNumber"] && (
                 <p className="text-red-500 text-sm mt-1">{errors["waybillNumber"]}</p>
               )}
