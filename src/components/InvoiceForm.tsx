@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -253,12 +254,12 @@ const InvoiceForm: React.FC = () => {
           .join(", "),
       };
 
-      // Add the invoice and wait for the promise to resolve
+      // Add the invoice
       const newInvoice = await addInvoice(invoice);
       
       toast({
         title: "Invoice Created",
-        description: `Invoice with consignment number ${newInvoice.consignmentNumber} has been created successfully.`,
+        description: `Invoice with waybill number ${newInvoice.waybillNumber} has been created successfully.`,
       });
 
       // Navigate to the invoice details page
