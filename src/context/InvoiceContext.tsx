@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,12 +78,10 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Fetch invoices whenever the user changes
   useEffect(() => {
     if (user) {
       fetchInvoices();
     } else {
-      // When not logged in, use local storage for demo purposes
       const savedInvoices = localStorage.getItem("invoices");
       setInvoices(savedInvoices ? JSON.parse(savedInvoices) : []);
       setLoading(false);
@@ -103,7 +100,6 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         throw error;
       }
 
-      // Get all invoice items
       const { data: itemsData, error: itemsError } = await supabase
         .from("invoice_items")
         .select("*");
@@ -112,9 +108,7 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         throw itemsError;
       }
 
-      // Transform database data to our Invoice format
       const transformedInvoices: Invoice[] = invoicesData.map((dbInvoice) => {
-        // Find items for this invoice
         const invoiceItems = itemsData
           ? itemsData.filter((item) => item.invoice_id === dbInvoice.id)
           : [];
@@ -187,7 +181,6 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const addInvoice = async (invoiceData: Omit<Invoice, "id" | "consignmentNumber">) => {
     if (!user) {
-      // Fallback to local storage when not logged in
       const newInvoice: Invoice = {
         ...invoiceData,
         id: Math.random().toString(36).substring(2, 9),
@@ -199,10 +192,8 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      // Generate the consignment number
       const consignmentNumber = generateConsignmentNumber();
 
-      // Insert the invoice to the database
       const { data: invoiceResult, error: invoiceError } = await supabase
         .from("invoices")
         .insert({
@@ -240,7 +231,6 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       if (invoiceError) throw invoiceError;
 
-      // Insert all invoice items
       const invoiceItems = invoiceData.items.map((item) => ({
         invoice_id: invoiceResult.id,
         description: item.description,
@@ -257,10 +247,8 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (itemsError) throw itemsError;
       }
 
-      // Fetch the updated invoice list
       await fetchInvoices();
 
-      // Return the new invoice
       const newInvoice: Invoice = {
         ...invoiceData,
         id: invoiceResult.id,
@@ -300,7 +288,6 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const updateInvoiceStatus = async (id: string, status: InvoiceStatus) => {
     if (!user) {
-      // Fallback to local storage when not logged in
       setInvoices((prev) =>
         prev.map((invoice) =>
           invoice.id === id ? { ...invoice, status } : invoice
@@ -325,7 +312,6 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       if (error) throw error;
 
-      // Update local state
       setInvoices((prev) =>
         prev.map((invoice) =>
           invoice.id === id ? { ...invoice, status } : invoice
@@ -344,7 +330,6 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const updatePaymentStatus = async (id: string, status: PaymentStatus) => {
     if (!user) {
-      // Fallback to local storage when not logged in
       setInvoices((prev) =>
         prev.map((invoice) =>
           invoice.id === id ? { ...invoice, paymentStatus: status } : invoice
@@ -369,7 +354,6 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       if (error) throw error;
 
-      // Update local state
       setInvoices((prev) =>
         prev.map((invoice) =>
           invoice.id === id ? { ...invoice, paymentStatus: status } : invoice
