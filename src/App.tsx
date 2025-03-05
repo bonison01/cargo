@@ -5,6 +5,7 @@ import Index from "./pages/Index";
 import CreateInvoice from "./pages/CreateInvoice";
 import ViewInvoices from "./pages/ViewInvoices";
 import InvoiceDetails from "./pages/InvoiceDetails";
+import DeliveryRates from "./pages/DeliveryRates";
 import Track from "./pages/Track";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -46,6 +47,7 @@ function App() {
               }
             />
             <Route path="/track" element={<Track />} />
+            <Route path="/delivery-rates" element={<DeliveryRates />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />

@@ -11,6 +11,7 @@ import {
   X,
   LogOut,
   LogIn,
+  IndianRupee,
   UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,12 @@ const Header: React.FC = () => {
       icon: <Truck className="h-4 w-4 mr-2" />,
       public: true,
     },
+    {
+      name: "Delivery Rates",
+      path: "/delivery-rates",
+      icon: <IndianRupee className="h-4 w-4 mr-2" />,
+      public: true,
+    },
   ];
 
   const handleLogout = async () => {
@@ -80,8 +87,8 @@ const Header: React.FC = () => {
             to="/"
             className="flex items-center text-lg font-semibold transition-all hover:opacity-80"
           >
-            <Package className="h-6 w-6 mr-2 text-mateng" />
-            <span className="text-mateng font-bold">Mateng</span>
+
+            <span className="font-poppins font-extrabold italic" style={{ color: '#025200' }}>mateng</span>
           </Link>
         </div>
 
@@ -132,14 +139,17 @@ const Header: React.FC = () => {
             </DropdownMenu>
           ) : (
             <>
-              <Button variant="ghost" onClick={() => navigate("/auth")} className="gap-2">
-                <LogIn className="h-4 w-4" />
-                <span>Log in</span>
-              </Button>
-              <Button onClick={() => navigate("/auth?tab=register")} className="gap-2">
-                <UserPlus className="h-4 w-4" />
-                <span>Sign up</span>
-              </Button>
+              {/* 
+            <Button variant="ghost" onClick={() => navigate("/auth")} className="gap-2">
+              <LogIn className="h-4 w-4" />
+              <span>Log in</span>
+            </Button>
+            <Button onClick={() => navigate("/auth?tab=register")} className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              <span>Sign up</span>
+            </Button>
+            */}
+
             </>
           )}
         </div>
@@ -193,6 +203,7 @@ const Header: React.FC = () => {
                 </Button>
               ) : (
                 <div className="flex flex-col gap-2 mt-2">
+                  {/*
                   <Button 
                     variant="outline" 
                     onClick={() => {
@@ -214,6 +225,7 @@ const Header: React.FC = () => {
                     <UserPlus className="mr-2 h-4 w-4" />
                     <span>Sign up</span>
                   </Button>
+                  */}
                 </div>
               )}
             </div>

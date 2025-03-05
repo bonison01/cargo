@@ -6,21 +6,22 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Header from "@/components/Header";
 import { Package, FileText, Truck, Search, ArrowRight } from "lucide-react";
 
+
 const Index = () => {
   const features = [
     {
       icon: <FileText className="h-10 w-10 text-mateng" />,
-      title: "Create Invoices",
-      description: "Generate professional invoices for your shipments with auto-generated consignment numbers.",
-      link: "/create-invoice",
-      linkText: "Create Invoice",
+      title: "Check Delivery Charges",
+      description: "Check the delivery charges for your shipment based on weight and destination.",
+      link: "/delivery-rates",
+      linkText: "Delivery Charges",
     },
     {
       icon: <Search className="h-10 w-10 text-mateng" />,
-      title: "Manage Invoices",
+      title: "Check Deliverable Areas",
       description: "View, search, and manage all your shipping invoices in one place.",
-      link: "/invoices",
-      linkText: "View Invoices",
+      link: "/",
+      linkText: "Deliverable Areas",
     },
     {
       icon: <Truck className="h-10 w-10 text-mateng" />,
@@ -53,8 +54,8 @@ const Index = () => {
               </p>
               <div className="flex flex-wrap gap-4 justify-center animate-fade-in" style={{ animationDelay: "200ms" }}>
                 <Button asChild size="lg" className="bg-mateng hover:bg-mateng/90">
-                  <Link to="/create-invoice">
-                    Create Invoice
+                  <Link to="https://justmateng.com/home">
+                    Mateng Marketplace
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
@@ -101,16 +102,16 @@ const Index = () => {
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-mateng text-white font-bold mb-4">
                   1
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Create Invoice</h3>
+                <h3 className="text-xl font-semibold mb-2">Pickup Parcel</h3>
                 <p className="text-muted-foreground">
-                  Fill out the invoice form with shipment details, sender and receiver information.
+                  We pick up your parcel from your location and package it for delivery.
                 </p>
               </div>
               <div className="flex flex-col items-center text-center">
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-mateng text-white font-bold mb-4">
                   2
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Get Consignment Number</h3>
+                <h3 className="text-xl font-semibold mb-2">Consigment Number Generation</h3>
                 <p className="text-muted-foreground">
                   The system automatically generates a unique consignment number for tracking.
                 </p>
@@ -133,8 +134,8 @@ const Index = () => {
         <div className="container">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
-              <Package className="h-6 w-6 mr-2 text-mateng" />
-              <span className="font-semibold text-lg">Mateng</span>
+              {/*<Package className="h-6 w-6 mr-2 text-mateng" />  How It Works */}
+              <span className="font-poppins font-extrabold text-lg italic" style={{ color: '#025200' }}>mateng</span>
             </div>
             <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} Mateng. All rights reserved.
