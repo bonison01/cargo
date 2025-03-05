@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 interface ProtectedRouteProps {
@@ -9,6 +9,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   // If still loading, show a simple loading state
   if (loading) {
@@ -17,6 +18,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  // Public routes that don't need authentication
+  const publicRoutes = ["/track", "/auth"];
+  
+  // If the current path is in the public routes list, don't redirect
+  if (publicRoutes.some(route => location.pathname.startsWith(route))) {
+    return <>{children}</>;
   }
 
   // If not authenticated, redirect to login
