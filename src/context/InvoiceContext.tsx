@@ -270,7 +270,8 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         console.error("Error during Supabase save:", error);
         // Already saved to localStorage, so just show a warning
         toast({
-          variant: "warning",
+          // Change from "warning" to "default" since "warning" is not an allowed variant
+          variant: "default",
           title: "Partial Success",
           description: "Invoice saved locally but couldn't be synchronized with the server.",
         });
