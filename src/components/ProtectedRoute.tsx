@@ -21,7 +21,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   // Public routes that don't need authentication
-  const publicRoutes = ["/track", "/auth"];
+  const publicRoutes = ["/track", "/auth", "/create-invoice", "/invoices"];
   
   // If the current path is in the public routes list, don't redirect
   if (publicRoutes.some(route => location.pathname.startsWith(route))) {

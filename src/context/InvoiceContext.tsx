@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,10 +79,13 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Load invoices on component mount - now using localStorage by default
   useEffect(() => {
     if (user) {
+      // For authenticated users, try to fetch from Supabase
       fetchInvoices();
     } else {
+      // For non-authenticated users, load from localStorage
       const savedInvoices = localStorage.getItem("invoices");
       setInvoices(savedInvoices ? JSON.parse(savedInvoices) : []);
       setLoading(false);
@@ -158,13 +162,22 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         };
       });
 
-      setInvoices(transformedInvoices);
+      // Merge with local storage invoices
+      const savedInvoices = localStorage.getItem("invoices");
+      const localInvoices = savedInvoices ? JSON.parse(savedInvoices) : [];
+      
+      const allInvoices = [...transformedInvoices, ...localInvoices];
+      setInvoices(allInvoices);
     } catch (error) {
       console.error("Error fetching invoices:", error);
+      // Fall back to localStorage if Supabase fetch fails
+      const savedInvoices = localStorage.getItem("invoices");
+      setInvoices(savedInvoices ? JSON.parse(savedInvoices) : []);
+      
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to load invoices. Please try again later.",
+        description: "Failed to load invoices from server. Using local data only.",
       });
     } finally {
       setLoading(false);
@@ -180,91 +193,91 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addInvoice = async (invoiceData: Omit<Invoice, "id" | "consignmentNumber">) => {
-    if (!user) {
-      const newInvoice: Invoice = {
-        ...invoiceData,
-        id: Math.random().toString(36).substring(2, 9),
-        consignmentNumber: generateConsignmentNumber(),
-      };
-      setInvoices((prev) => [...prev, newInvoice]);
-      localStorage.setItem("invoices", JSON.stringify([...invoices, newInvoice]));
-      return newInvoice;
-    }
+    // Generate a new ID and consignment number
+    const newInvoice: Invoice = {
+      ...invoiceData,
+      id: Math.random().toString(36).substring(2, 9),
+      consignmentNumber: generateConsignmentNumber(),
+    };
 
-    try {
-      const consignmentNumber = generateConsignmentNumber();
+    // Always save to localStorage first
+    const updatedInvoices = [...invoices, newInvoice];
+    localStorage.setItem("invoices", JSON.stringify(updatedInvoices));
+    setInvoices(updatedInvoices);
 
-      const { data: invoiceResult, error: invoiceError } = await supabase
-        .from("invoices")
-        .insert({
-          user_id: user.id,
-          date: invoiceData.date,
-          consignment_number: consignmentNumber,
-          waybill_number: invoiceData.waybillNumber,
-          origin_city: invoiceData.originCity,
-          destination_city: invoiceData.destinationCity,
-          sender_name: invoiceData.sender.name,
-          sender_address: invoiceData.sender.address,
-          sender_phone: invoiceData.sender.phone,
-          receiver_name: invoiceData.receiver.name,
-          receiver_address: invoiceData.receiver.address,
-          receiver_phone: invoiceData.receiver.phone,
-          total_items: invoiceData.totalItems,
-          weight: invoiceData.weight,
-          gross_weight: invoiceData.grossWeight,
-          contents: invoiceData.contents,
-          dimensions: invoiceData.dimensions,
-          basic_freight: invoiceData.charges.basicFreight,
-          cod: invoiceData.charges.cod,
-          freight_handling: invoiceData.charges.freightHandling,
-          pickup_delivery: invoiceData.charges.pickupDelivery,
-          packaging: invoiceData.charges.packaging,
-          cwb_charge: invoiceData.charges.cwbCharge,
-          other_charges: invoiceData.charges.otherCharges,
-          cgst: invoiceData.charges.cgst,
-          total: invoiceData.charges.total,
-          status: invoiceData.status,
-          payment_status: invoiceData.paymentStatus,
-        })
-        .select("id")
-        .single();
+    // If logged in, try to save to Supabase too
+    if (user) {
+      try {
+        const { data: invoiceResult, error: invoiceError } = await supabase
+          .from("invoices")
+          .insert({
+            user_id: user.id,
+            date: invoiceData.date,
+            consignment_number: newInvoice.consignmentNumber,
+            waybill_number: invoiceData.waybillNumber,
+            origin_city: invoiceData.originCity,
+            destination_city: invoiceData.destinationCity,
+            sender_name: invoiceData.sender.name,
+            sender_address: invoiceData.sender.address,
+            sender_phone: invoiceData.sender.phone,
+            receiver_name: invoiceData.receiver.name,
+            receiver_address: invoiceData.receiver.address,
+            receiver_phone: invoiceData.receiver.phone,
+            total_items: invoiceData.totalItems,
+            weight: invoiceData.weight,
+            gross_weight: invoiceData.grossWeight,
+            contents: invoiceData.contents,
+            dimensions: invoiceData.dimensions,
+            basic_freight: invoiceData.charges.basicFreight,
+            cod: invoiceData.charges.cod,
+            freight_handling: invoiceData.charges.freightHandling,
+            pickup_delivery: invoiceData.charges.pickupDelivery,
+            packaging: invoiceData.charges.packaging,
+            cwb_charge: invoiceData.charges.cwbCharge,
+            other_charges: invoiceData.charges.otherCharges,
+            cgst: invoiceData.charges.cgst,
+            total: invoiceData.charges.total,
+            status: invoiceData.status,
+            payment_status: invoiceData.paymentStatus,
+          })
+          .select("id")
+          .single();
 
-      if (invoiceError) throw invoiceError;
+        if (invoiceError) {
+          console.error("Error saving to Supabase:", invoiceError);
+          // Already saved to localStorage, so just log the error
+        } else if (invoiceResult) {
+          // If Supabase save was successful, update items too
+          const invoiceItems = invoiceData.items.map((item) => ({
+            invoice_id: invoiceResult.id,
+            description: item.description,
+            quantity: item.quantity,
+            weight: item.weight,
+            dimensions: item.dimensions || "",
+          }));
 
-      const invoiceItems = invoiceData.items.map((item) => ({
-        invoice_id: invoiceResult.id,
-        description: item.description,
-        quantity: item.quantity,
-        weight: item.weight,
-        dimensions: item.dimensions || "",
-      }));
+          if (invoiceItems.length > 0) {
+            const { error: itemsError } = await supabase
+              .from("invoice_items")
+              .insert(invoiceItems);
 
-      if (invoiceItems.length > 0) {
-        const { error: itemsError } = await supabase
-          .from("invoice_items")
-          .insert(invoiceItems);
-
-        if (itemsError) throw itemsError;
+            if (itemsError) {
+              console.error("Error saving items to Supabase:", itemsError);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error during Supabase save:", error);
+        // Already saved to localStorage, so just show a warning
+        toast({
+          variant: "warning",
+          title: "Partial Success",
+          description: "Invoice saved locally but couldn't be synchronized with the server.",
+        });
       }
-
-      await fetchInvoices();
-
-      const newInvoice: Invoice = {
-        ...invoiceData,
-        id: invoiceResult.id,
-        consignmentNumber,
-      };
-
-      return newInvoice;
-    } catch (error) {
-      console.error("Error adding invoice:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create invoice. Please try again.",
-      });
-      throw error;
     }
+
+    return newInvoice;
   };
 
   const getInvoice = (id: string) => {
@@ -287,86 +300,52 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateInvoiceStatus = async (id: string, status: InvoiceStatus) => {
-    if (!user) {
-      setInvoices((prev) =>
-        prev.map((invoice) =>
-          invoice.id === id ? { ...invoice, status } : invoice
-        )
-      );
-      localStorage.setItem(
-        "invoices",
-        JSON.stringify(
-          invoices.map((invoice) =>
-            invoice.id === id ? { ...invoice, status } : invoice
-          )
-        )
-      );
-      return;
-    }
+    // Update in local state and localStorage
+    const updatedInvoices = invoices.map((invoice) =>
+      invoice.id === id ? { ...invoice, status } : invoice
+    );
+    setInvoices(updatedInvoices);
+    localStorage.setItem("invoices", JSON.stringify(updatedInvoices));
+    
+    // If logged in, try to update in Supabase too
+    if (user) {
+      try {
+        const { error } = await supabase
+          .from("invoices")
+          .update({ status })
+          .eq("id", id);
 
-    try {
-      const { error } = await supabase
-        .from("invoices")
-        .update({ status })
-        .eq("id", id);
-
-      if (error) throw error;
-
-      setInvoices((prev) =>
-        prev.map((invoice) =>
-          invoice.id === id ? { ...invoice, status } : invoice
-        )
-      );
-    } catch (error) {
-      console.error("Error updating invoice status:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update invoice status. Please try again.",
-      });
-      throw error;
+        if (error) {
+          console.error("Error updating invoice status in Supabase:", error);
+        }
+      } catch (error) {
+        console.error("Error during Supabase update:", error);
+      }
     }
   };
 
   const updatePaymentStatus = async (id: string, status: PaymentStatus) => {
-    if (!user) {
-      setInvoices((prev) =>
-        prev.map((invoice) =>
-          invoice.id === id ? { ...invoice, paymentStatus: status } : invoice
-        )
-      );
-      localStorage.setItem(
-        "invoices",
-        JSON.stringify(
-          invoices.map((invoice) =>
-            invoice.id === id ? { ...invoice, paymentStatus: status } : invoice
-          )
-        )
-      );
-      return;
-    }
+    // Update in local state and localStorage
+    const updatedInvoices = invoices.map((invoice) =>
+      invoice.id === id ? { ...invoice, paymentStatus: status } : invoice
+    );
+    setInvoices(updatedInvoices);
+    localStorage.setItem("invoices", JSON.stringify(updatedInvoices));
+    
+    // If logged in, try to update in Supabase too
+    if (user) {
+      try {
+        const { error } = await supabase
+          .from("invoices")
+          .update({ payment_status: status })
+          .eq("id", id);
 
-    try {
-      const { error } = await supabase
-        .from("invoices")
-        .update({ payment_status: status })
-        .eq("id", id);
-
-      if (error) throw error;
-
-      setInvoices((prev) =>
-        prev.map((invoice) =>
-          invoice.id === id ? { ...invoice, paymentStatus: status } : invoice
-        )
-      );
-    } catch (error) {
-      console.error("Error updating payment status:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update payment status. Please try again.",
-      });
-      throw error;
+        if (error) {
+          console.error("Error updating payment status in Supabase:", error);
+        }
+      } catch (error) {
+        console.error("Error during Supabase update:", error);
+      }
     }
   };
 

@@ -12,8 +12,8 @@ const Track: React.FC = () => {
   useEffect(() => {
     if (!loading && (!invoices || invoices.length === 0)) {
       toast({
-        title: "Demo Mode",
-        description: "You are using tracking in demo mode. Login to track actual shipments.",
+        title: "No Shipments Found",
+        description: "No shipment data available. Create an invoice to track shipments.",
       });
     }
   }, [loading, invoices, toast]);
