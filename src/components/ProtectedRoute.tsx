@@ -1,13 +1,16 @@
-
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  authRequired?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  authRequired = false 
+}) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -20,20 +23,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Public routes that don't need authentication
-  const publicRoutes = ["/track", "/auth", "/create-invoice", "/invoices"];
-  
-  // If the current path is in the public routes list, don't redirect
-  if (publicRoutes.some(route => location.pathname.startsWith(route))) {
-    return <>{children}</>;
+  // If auth is required and user is not logged in, redirect to login
+  if (authRequired && !user) {
+    return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // If not authenticated, redirect to login
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  // If authenticated, render the children
+  // Otherwise, render the children
   return <>{children}</>;
 };
 

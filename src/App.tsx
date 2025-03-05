@@ -24,7 +24,7 @@ function App() {
             <Route
               path="/create-invoice"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authRequired={true}>
                   <CreateInvoice />
                 </ProtectedRoute>
               }
@@ -32,7 +32,7 @@ function App() {
             <Route
               path="/invoices"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authRequired={true}>
                   <ViewInvoices />
                 </ProtectedRoute>
               }
@@ -40,7 +40,7 @@ function App() {
             <Route
               path="/invoices/:id"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authRequired={true}>
                   <InvoiceDetails />
                 </ProtectedRoute>
               }
