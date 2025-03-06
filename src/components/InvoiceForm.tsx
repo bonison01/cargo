@@ -648,7 +648,7 @@ const InvoiceForm: React.FC = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="charges.pickupDelivery">Pickup</Label>
+                <Label htmlFor="charges.pickupDelivery">Pickup and Delivery</Label>
                 <Input
                   id="charges.pickupDelivery"
                   name="charges.pickupDelivery"
