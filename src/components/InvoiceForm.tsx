@@ -48,6 +48,7 @@ const InvoiceForm: React.FC = () => {
       cod: 0,
       freightHandling: 0,
       pickupDelivery: 0,
+      Delivery: 0,
       packaging: 0,
       cwbCharge: 0,
       otherCharges: 0,
@@ -65,6 +66,7 @@ const InvoiceForm: React.FC = () => {
       formData.charges.cod +
       formData.charges.freightHandling +
       formData.charges.pickupDelivery +
+      formData.charges.Delivery +
       formData.charges.packaging +
       formData.charges.cwbCharge +
       formData.charges.otherCharges;
@@ -84,6 +86,7 @@ const InvoiceForm: React.FC = () => {
     formData.charges.cod,
     formData.charges.freightHandling,
     formData.charges.pickupDelivery,
+    formData.charges.Delivery,
     formData.charges.packaging,
     formData.charges.cwbCharge,
     formData.charges.otherCharges,
@@ -656,18 +659,20 @@ const InvoiceForm: React.FC = () => {
                   onChange={handleInputChange}
                 />
               </div>
+              {/* Charges 
               <div className="space-y-2">
-                <Label htmlFor="charges.pickupDelivery">Delivery</Label>
+                <Label htmlFor="charges.Delivery">Delivery</Label>
                 <Input
-                  id="charges.pickupDelivery"
-                  name="charges.pickupDelivery"
+                  id="charges.Delivery"
+                  name="charges.Delivery"
                   type="number"
                   min="0"
                   step="0.01"
-                  value={formData.charges.pickupDelivery}
+                  value={formData.charges.Delivery}
                   onChange={handleInputChange}
                 />
               </div>
+              */}
               <div className="space-y-2">
                 <Label htmlFor="charges.packaging">Packaging</Label>
                 <Input
@@ -716,6 +721,7 @@ const InvoiceForm: React.FC = () => {
                     formData.charges.cod +
                     formData.charges.freightHandling +
                     formData.charges.pickupDelivery +
+                    formData.charges.Delivery +
                     formData.charges.packaging +
                     formData.charges.cwbCharge +
                     formData.charges.otherCharges

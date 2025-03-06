@@ -31,6 +31,8 @@ import {
   X,
 } from "lucide-react";
 
+
+
 const InvoiceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -327,7 +329,7 @@ const InvoiceDetail: React.FC = () => {
                   <span className="text-sm text-muted-foreground">Freight Handling</span>
                   <span className="text-right">{formatCurrency(invoice.charges.freightHandling)}</span>
                   
-                  <span className="text-sm text-muted-foreground">Pickup & Delivery</span>
+                  <span className="text-sm text-muted-foreground">Pickup and Delivery</span>
                   <span className="text-right">{formatCurrency(invoice.charges.pickupDelivery)}</span>
                 </div>
               </div>
