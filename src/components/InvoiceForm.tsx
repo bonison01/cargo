@@ -184,8 +184,7 @@ const InvoiceForm: React.FC = () => {
       newErrors["sender.address"] = "Sender address is required";
     if (!formData.sender.phone.trim())
       newErrors["sender.phone"] = "Sender phone is required";
-    else if (!isValidPhone(formData.sender.phone))
-      newErrors["sender.phone"] = "Enter a valid 10-digit phone number";
+
 
     // Receiver validation
     if (!formData.receiver.name.trim())
@@ -194,8 +193,7 @@ const InvoiceForm: React.FC = () => {
       newErrors["receiver.address"] = "Receiver address is required";
     if (!formData.receiver.phone.trim())
       newErrors["receiver.phone"] = "Receiver phone is required";
-    else if (!isValidPhone(formData.receiver.phone))
-      newErrors["receiver.phone"] = "Enter a valid 10-digit phone number";
+
 
     // Item validation
     formData.items.forEach((item, index) => {
