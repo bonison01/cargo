@@ -343,8 +343,7 @@ const InvoiceDetail: React.FC = () => {
                   <span className="text-sm text-muted-foreground">Other Charges</span>
                   <span className="text-right">{formatCurrency(invoice.charges.otherCharges)}</span>
                   
-                  <span className="text-sm text-muted-foreground">CGST (18%)</span>
-                  <span className="text-right">{formatCurrency(invoice.charges.cgst)}</span>
+
                 </div>
               </div>
             </div>

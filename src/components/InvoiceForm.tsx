@@ -645,7 +645,19 @@ const InvoiceForm: React.FC = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="charges.pickupDelivery">Pickup & Delivery</Label>
+                <Label htmlFor="charges.pickupDelivery">Pickup</Label>
+                <Input
+                  id="charges.pickupDelivery"
+                  name="charges.pickupDelivery"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.charges.pickupDelivery}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="charges.pickupDelivery">Delivery</Label>
                 <Input
                   id="charges.pickupDelivery"
                   name="charges.pickupDelivery"
@@ -710,10 +722,11 @@ const InvoiceForm: React.FC = () => {
                   ).toFixed(2)}
                 </span>
               </div>
+               {/* Charges 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">CGST (18%):</span>
                 <span>₹{formData.charges.cgst.toFixed(2)}</span>
-              </div>
+              </div>*/}
               <div className="flex justify-between font-semibold pt-2 border-t">
                 <span>Total:</span>
                 <span>₹{formData.charges.total.toFixed(2)}</span>
