@@ -76,7 +76,7 @@ const InvoiceForm: React.FC = () => {
       charges: {
         ...prev.charges,
         cgst,
-        total: subtotal + cgst,
+        total: subtotal,
       },
     }));
   }, [
